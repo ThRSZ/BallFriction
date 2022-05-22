@@ -1,0 +1,83 @@
+GlowScript 3.1 VPython
+
+#name: Thomas Szaktilla
+#name: Noora Hamodi
+
+#From Sliding to Rolling
+
+#Texture of Background
+##Pic originally from https://cdn.pixabay.com/photo/2019/01/02/03/58/background-3907970_960_720.jpg
+scene.autoscale = False
+sphere(pos=vector(0,0,0),texture="https://i.imgur.com/1nVWbbd.jpg",radius=55,shininess=0)
+
+
+#constants
+mu = float(input("Friction Coefficient?"))         #friction coefficient
+L = 15                                             #track
+Radius = int(input("Radius?"))                     #radius (m)
+Mass = int(input("Mass of Ball?"))                 #mass  (kg)
+I = (2/5)*Mass * Radius**2                         #Inertia (Kg m^2)
+g= vec(0,-9.8,0)                                   #gravity
+
+#initial variables
+t=0                                        #initial time (s)
+dt = 0.01                                  #time interval 
+v0 = int(input("Initial Velocity"))        #initial velocity
+w = 0                                      #initial rotational velocity
+Ff = mu*Mass*g.y*vec(1,0,0)                #Force of Friction
+ballp = Mass*vec(v0,0,0)                   #Momentum of ball
+
+#the floor and the ball
+floor1 = box(pos=vec(-7.5,-Radius-1,0), size = vec(15,2,1), color = color.red)
+floor2 = box(pos=vec(7.5,-Radius-1,0), size = vec(15,2,1), color = color.green)
+ball = sphere(pos=vec(-15,0 ,0 ), radius= Radius , texture= "https://i.imgur.com/nI5Qx0l.jpeg")
+
+#Graph setup
+graph(title='Velocity vs Position', xtitle = 'x (m)', ytitle = 'v (m/s) and w (rad/s)')
+vball_graph= gcurve(color=color.green)
+wball_graph= gcurve(color=color.red)
+
+graph(title='Energy vs Position', xtitle = 'x (m)', ytitle = 'Energy (J)')
+v_en= gcurve(color=color.yellow)
+w_en= gcurve(color=color.blue)
+
+#Ball moves frictionless before halfway mark
+while  ball.pos.x <  0 :                
+ rate(100)
+
+ ballp = ballp #+ Fnet*dt                                       #Updated momentum
+ ball.pos = ball.pos + ballp*dt/Mass                            #Updated position
+ t = t+dt                                                       #Updated Time
+ 
+ #Graphs and values
+ vball_graph.plot(ball.pos.x, v0)
+ wball_graph.plot(ball.pos.x, w)
+ 
+ v_en.plot(ball.pos.x, .5*Mass*v0**2)
+ w_en.plot(ball.pos.x, .5*I*w**2)
+ print(ballp/Mass)
+ 
+ 
+#Ball moves w/ friction after halfway mark 
+while ball.pos.x >= 0:
+ rate(100)
+ if -w*Radius >= mag(ballp/Mass):
+   Ff=vector(0,0,0)
+ ballp = ballp + Ff*dt                                         #Updated momentum
+ ball.pos = ball.pos + ballp*dt/Mass                           #Updated position
+ t = t+dt                                                      #Updated Time
+ Tau = Radius*Ff.x                                             #Torque
+ w = w + (Tau/I)*dt                                            #Rotational Velocity
+ ball.rotate(origin=ball.pos, axis=vector(0,0,1), angle= w*dt) #Rotational Axis
+ if ball.pos.x >= 15: break                                    #End of function
+
+ 
+ #Graphs and values
+ vball_graph.plot(ball.pos.x, ballp.x/Mass)
+ wball_graph.plot(ball.pos.x, -w)
+ 
+ v_en.plot(ball.pos.x, .5*Mass*(ballp.x/Mass)**2)
+ w_en.plot(ball.pos.x, .5*I*w**2)
+ print(ballp/Mass)
+ print(w)
+ 
